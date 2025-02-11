@@ -25,6 +25,9 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
+        ports:
+          # Maps tcp port 5432 on service container to the host
+          - 5432:5432
 
     steps:
     - uses: actions/checkout@v4
@@ -36,6 +39,13 @@ jobs:
 
     - name: Build
       run: go build -v ./...
+
+    - name: Set up Go-migration
+      run: |
+        curl -L https://packagecloud.io/golang-migrate/migrate/gpgkey | apt-key add -
+        echo "deb https://packagecloud.io/golang-migrate/migrate/ubuntu/ $(lsb_release -sc) main" > /etc/apt/sources.list.d/migrate.list
+        apt-get update
+        apt-get install -y migrate
 
     - name: Run migration
       run: make migrateup
