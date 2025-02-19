@@ -9,7 +9,7 @@ import (
 	"github.com/techschool/simplebank/db/util"
 )
 
-func createRandomArgs(t *testing.T) CreateAccountParams {
+func createRandomArgs() CreateAccountParams {
 	accountParams := CreateAccountParams{
 		Owner:    util.RandomOwner(),
 		Balance:  util.RandomBalance(),
@@ -19,8 +19,10 @@ func createRandomArgs(t *testing.T) CreateAccountParams {
 }
 
 func createRandomAccount(t *testing.T) Account {
+	user := createRandomUser(t)
+
 	accountParams := CreateAccountParams{
-		Owner:    util.RandomOwner(),
+		Owner:    user.Username,
 		Balance:  util.RandomBalance(),
 		Currency: util.RandomCurrency(),
 	}
