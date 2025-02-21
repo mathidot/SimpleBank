@@ -1,6 +1,6 @@
 module github.com/techschool/simplebank
 
-go 1.23
+go 1.23.6
 
 require (
 	github.com/gin-gonic/gin v1.10.0
