@@ -2,9 +2,11 @@ package api
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"net/http/httptest"
 	"reflect"
@@ -12,6 +14,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang/mock/gomock"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/stretchr/testify/require"
 	mockdb "github.com/techschool/simplebank/db/mock"
 	db "github.com/techschool/simplebank/db/sqlc"
@@ -73,6 +76,38 @@ func EqCreateUserParams(arg db.CreateUserParams, password string) gomock.Matcher
 	return eqCreateUserParamsMatcher{arg: arg, password: password}
 }
 
+func TestCreateOneUser(t *testing.T) {
+	var connPool *pgxpool.Pool
+	hashedPassword, err := util.HashedPassword("@Cdl.5201314")
+	if err != nil {
+		return
+	}
+
+	args := db.CreateUserParams{
+		Username:       util.RandomOwner(),
+		HashedPassword: hashedPassword,
+		FullName:       util.RandomOwner(),
+		Email:          util.RandomEmail(),
+	}
+
+	config, err := util.LoadConfig("../")
+	if err != nil {
+		log.Fatal("cannot load config:", err)
+	}
+
+	connPool, err = pgxpool.New(context.Background(), config.DBSource)
+	if err != nil {
+		log.Fatal("cannot connect to db:", err)
+	}
+
+	store := db.NewStore(connPool)
+	server := NewTestServer(t, store)
+	user, err := server.store.CreateUser(context.Background(), args)
+	require.NoError(t, err)
+	require.Equal(t, user.Username, args.Username)
+	require.Equal(t, user.HashedPassword, args.HashedPassword)
+}
+
 func TestCreateUserAPI(t *testing.T) {
 	user, password := randomUser(t)
 
@@ -114,7 +149,7 @@ func TestCreateUserAPI(t *testing.T) {
 			store := mockdb.NewMockStore(ctrl)
 			tc.buildStubs(store)
 
-			server := NewServer(store)
+			server := NewTestServer(t, store)
 			recorder := httptest.NewRecorder()
 
 			data, err := json.Marshal(tc.body)
