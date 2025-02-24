@@ -1,6 +1,3 @@
-# This workflow will build a golang project
-# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-go
-
 name: unit-test
 
 on:
@@ -36,11 +33,11 @@ jobs:
     - name: Set up Go
       uses: actions/setup-go@v4
       with:
-        go-version: '1.23.6'
+        go-version: '1.20.6'  # 修正为正确的 Go 版本
       id: go
 
     - name: Check out code into the Go module directory
-    - uses: actions/checkout@v4
+      uses: actions/checkout@v4
 
     - name: Build
       run: go build -v ./...
@@ -51,10 +48,13 @@ jobs:
         sudo mv migrate /usr/local/bin/
         which migrate
 
+    - name: Install PostgreSQL client
+      run: sudo apt-get install -y postgresql-client
+
     - name: Wait for PostgreSQL to be ready
       run: |
         for i in {1..10}; do
-          if pg_isready -h localhost -p 5432 -U root -d simple_bank; then
+          if pg_isready -h postgres -p 5432 -U root -d simple_bank; then
             echo "PostgreSQL is ready!"
             break
           fi
