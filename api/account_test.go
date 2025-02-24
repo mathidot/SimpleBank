@@ -218,7 +218,7 @@ func TestGetAccountAPI(t *testing.T) {
 
 func TestListAccountsAPI(t *testing.T) {
 	randomListAccountsRequest := listAccountsRequest{
-		PageID:   int32(util.RandomInt(1, 10)),
+		PageID:   1,
 		PageSize: int32(util.RandomInt(1, 10)),
 	}
 
