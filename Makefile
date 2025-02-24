@@ -1,5 +1,5 @@
 postgres:
-	docker run --name postgres -p 5432:5432 -e POSTGRES_USER=root -e POSTGRES_PASSWORD=secret -d postgres:latest
+	docker run --name simplebank -p 8080:8080 -e GIN_MODE=release -e DB_SOURCE="postgresql://root:secret@172.17.0.2:5432/simple_bank?sslmode=disable" simplebank:latest
 createdb:
 	docker exec -it postgres createdb --username=root --owner=root simple_bank
 dropdb:
