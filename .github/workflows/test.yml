@@ -33,7 +33,7 @@ jobs:
     - name: Set up Go
       uses: actions/setup-go@v4
       with:
-        go-version: '1.20.6'  # 修正为正确的 Go 版本
+        go-version: '1.23'  # 修正为正确的 Go 版本
       id: go
 
     - name: Check out code into the Go module directory
