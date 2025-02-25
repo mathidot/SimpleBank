@@ -1,0 +1,48 @@
+name: Deploy to production
+
+on:
+  push:
+    branches: [release]
+
+env:
+  ALIYUN_REGISTRY: "${{ secrets.ALIYUN_REGISTRY }}"  # 阿里云容器镜像服务的 Registry 地址
+  ALIYUN_NAME_SPACE: "${{ secrets.ALIYUN_NAME_SPACE }}"  # 阿里云容器镜像服务的命名空间
+  ALIYUN_REGISTRY_USER: "${{ secrets.ALIYUN_REGISTRY_USER }}"  # 阿里云容器镜像服务的用户名
+  ALIYUN_REGISTRY_PASSWORD: "${{ secrets.ALIYUN_REGISTRY_PASSWORD }}"  # 阿里云容器镜像服务的密码
+
+jobs:
+  deploy:
+    name: Build and push image to Aliyun ACR
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v2
+
+      - name: Login to Aliyun Container Registry (ACR)
+        uses: aliyun/acr-login@v1
+        with:
+          login-server: ${{ env.ALIYUN_REGISTRY }}  # 阿里云容器镜像服务的 Registry 地址
+          username: ${{ env.ALIYUN_REGISTRY_USER }}  # 阿里云容器镜像服务的用户名
+          password: ${{ env.ALIYUN_REGISTRY_PASSWORD }}  # 阿里云容器镜像服务的密码
+
+      - name: Load secrets and save to app.env
+        run: |
+          # echo "Loading secrets..."
+          # 假设你使用阿里云的 Secrets Manager 或其他方式加载环境变量
+          # 这里是一个示例，将环境变量写入 app.env 文件
+          # echo "DB_HOST=your_db_host" > app.env
+          # echo "DB_USER=your_db_user" >> app.env
+          # echo "DB_PASSWORD=your_db_password" >> app.env
+
+      - name: Build, tag, and push image to Aliyun ACR
+        env:
+          IMAGE_TAG: ${{ github.sha }}  # 使用 Git commit SHA 作为镜像标签
+        run: |
+          # 登录阿里云
+          docker login --username=${{secrets.ALIYUN_REGISTRY_USER}} --password=${{secrets.ALIYUN_REGISTRY_PASSWORD}} 
+          # 构建 Docker 镜像
+          docker build -t ${{ env.ALIYUN_REGISTRY }}/${{ env.ALIYUN_NAME_SPACE }}/simplebank:$IMAGE_TAG .
+          docker tag $IMAGE_TAG ${{ env.ALIYUN_REGISTRY }}/${{ env.ALIYUN_NAME_SPACE }}/simplebank:$IMAGE_TAG
+          # 推送 Docker 镜像到阿里云 ACR
+          docker push ${{ env.ALIYUN_REGISTRY }}/${{ env.ALIYUN_NAME_SPACE }}/simplebank:$IMAGE_TAG
